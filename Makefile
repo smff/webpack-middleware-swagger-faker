@@ -1,19 +1,19 @@
 dev:
-	pnpx ts-node src/cli/index.ts gen
-	pnpx ts-node src/cli/index.ts run
+	npx ts-node src/cli/index.ts gen
+	npx ts-node src/cli/index.ts run
 
 mock:
-	pnpx json-server --watch mock-server/db.js --middlewares mock-server/middlewares/*.js
+	npx json-server --watch mock-server/db.js --middlewares mock-server/middlewares/*.js
 
 test:
-	pnpx jest
+	npx jest
 
 release:
 	rm -rf dist/
-	pnpx tsc
-	pnpx rollup -c rollup.config.ts
+	npx tsc
+	npx rollup -c rollup.config.ts
 
 release_doc:
 	rm -rf docs
-	pnpx typedoc
-	pnpx ts-node scripts/doc.ts
+	npx typedoc
+	npx ts-node scripts/doc.ts

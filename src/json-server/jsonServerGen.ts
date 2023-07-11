@@ -3,27 +3,11 @@ import { isEmpty, map, camelCase } from "lodash";
 import { fakerGenFromPath } from "../core";
 import { generateMockFile, isJSON } from "../core/utils";
 import { prettifyCode } from "./utils";
-import { FakeGenOutput, SwaggerFakerConfig } from "../../__types__/common";
+import { FakeGenOutput, WebpackMiddlewareSwaggerFaker } from "common";
 
-const defaultDBStr = `module.exports = () => {
-  return {};
-};
-`;
-const utilsStr = `const { pathToRegexp } = require("path-to-regexp");
-
-const isMatch = (routePattern) => (routePath) => {
-  const regexp = pathToRegexp(routePattern);
-  return !!regexp.exec(routePath);
-};
-
-module.exports = { isMatch };
-`;
-
-export const jsonServerGen = (swaggerFakerConfig: SwaggerFakerConfig) => {
-  const dbPath = `${swaggerFakerConfig.outputFolder}/db.js`;
-  const utilsPath = `${swaggerFakerConfig.outputFolder}/utils.js`;
-  const mockDataFolder = `${swaggerFakerConfig.outputFolder}/data`;
-  const middlewaresFolder = `${swaggerFakerConfig.outputFolder}/middlewares`;
+export const jsonServerGen = (swaggerFakerConfig: WebpackMiddlewareSwaggerFaker) => {
+  const mockDataFolder = `${ swaggerFakerConfig.outputFolder }/data`;
+  const middlewaresFolder = `${ swaggerFakerConfig.outputFolder }/middlewares`;
 
   if (!fs.existsSync(swaggerFakerConfig.outputFolder)) {
     fs.mkdirSync(swaggerFakerConfig.outputFolder, { recursive: true });
@@ -33,19 +17,12 @@ export const jsonServerGen = (swaggerFakerConfig: SwaggerFakerConfig) => {
     fs.mkdirSync(middlewaresFolder, { recursive: true });
   }
 
-  if (!fs.existsSync(utilsPath)) {
-    fs.writeFileSync(utilsPath, utilsStr);
-  }
-
-  if (!fs.existsSync(dbPath)) {
-    fs.writeFileSync(dbPath, defaultDBStr);
-  }
-
   swaggerFakerConfig.sourcePaths.forEach((apiSpecsPath) => {
     fakerGenFromPath(apiSpecsPath).then((list) => {
       list.map((item) => {
         configJsonServer(item, middlewaresFolder, mockDataFolder);
       });
+      configJsonServerMiddlewaresIndex(list, middlewaresFolder)
     });
   });
 };
@@ -55,21 +32,20 @@ const configJsonServer = (item: FakeGenOutput, middlewaresFolder: string, mockDa
     return;
   }
 
-  handleRequest(item, "../utils", "../data", middlewaresFolder, mockDataFolder);
+  handleRequest(item, "../data", middlewaresFolder, mockDataFolder);
 };
 
 const getRoutePath = (path: string, queryParams?: string[]) => {
-  const queryList = map(queryParams, (param) => `${param}=:${param}`);
-  return !isEmpty(queryParams) ? `${path}?${queryList.join("&")}` : `${path}`;
+  const queryList = map(queryParams, (param) => `${ param }=:${ param }`);
+  return !isEmpty(queryParams) ? `${ path }?${ queryList.join("&") }` : `${ path }`;
 };
 
 
 const handleRequest = (
-  item: FakeGenOutput,
-  utilsPath: string,
-  mockDataPath: string,
-  middlewarePath: string,
-  mockDataFolder: string,
+    item: FakeGenOutput,
+    mockDataPath: string,
+    middlewarePath: string,
+    mockDataFolder: string,
 ) => {
   const routePattern = getRoutePath(item.path);
   const operationId = camelCase(item.operationId);
@@ -79,34 +55,52 @@ const handleRequest = (
   }
 
   const resWithMockData = `
-    const { isMatch } = require("${utilsPath}");
-    const ${operationId} = require("${mockDataPath}/${operationId}.json");
-
-    module.exports = (req, res, next) => {
-      if (req.method === "${item.method}" && isMatch("${routePattern}")(req.path)) {
-        res.status(200).send(${operationId});
-        return;
+    var ${ operationId } = require("${ mockDataPath }/${ operationId }.json");
+    
+    module.exports = {
+        name: '${ operationId }',
+        path: '${ routePattern }',
+        middleware: (req, res) => {
+          res.json(${ operationId });
       }
-
-      next();
-    };
+    }
     `;
 
   const resWithoutMockData = `
-    const { isMatch } = require("${utilsPath}");
-
-    module.exports = (req, res, next) => {
-      if (req.method === "${item.method}" && isMatch("${routePattern}")(req.path)) {
-        res.status(200).send();
-        return;
+    var ${ operationId } = require("${ mockDataPath }/${ operationId }.json");
+    
+     module.exports = {
+        name: '${ operationId }',
+        path: '${ routePattern }',
+        middleware: (req, res) => {
+          res.status(200).send();
+        }
       }
-
-      next();
-    };
     `;
 
   const code = item.mocks && isJSON(item.mocks) ? resWithMockData : resWithoutMockData;
 
   generateMockFile(item.mocks, operationId, mockDataFolder);
-  fs.writeFileSync(`${middlewarePath}/${operationId}.js`, prettifyCode(code));
+  fs.writeFileSync(`${ middlewarePath }/${ operationId }.js`, prettifyCode(code));
 };
+
+
+const configJsonServerMiddlewaresIndex = (moduleItems: any, middlewaresFolder: string) => {
+  const indexFile = `${ middlewaresFolder }/index.js`;
+  fs.writeFileSync(indexFile, '')
+  moduleItems.forEach((item: any) => {
+    if (item && item.operationId) {
+      const importLine = `const ${ item.operationId } = require('./${ item.operationId }');\n`
+      fs.appendFileSync(indexFile, importLine)
+    }
+  })
+
+  fs.appendFileSync(indexFile, 'module.exports = {\n')
+  moduleItems.forEach((item: any) => {
+    if (item && item.operationId) {
+      const importLine = `${ item.operationId } : ${ item.operationId },\n`
+      fs.appendFileSync(indexFile, importLine)
+    }
+  })
+  fs.appendFileSync(indexFile, '}')
+}

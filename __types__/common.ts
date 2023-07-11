@@ -27,3 +27,8 @@ export interface SwaggerFakerConfig {
   timeout: number;
   port: number;
 }
+
+export interface WebpackMiddlewareSwaggerFaker {
+  sourcePaths: string[];
+  outputFolder: string;
+}

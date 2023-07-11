@@ -1,13 +1,20 @@
 {
-  "name": "swagger-faker",
-  "version": "3.3.0",
+  "name": "webpack-middleware-swagger-faker",
+  "version": "0.0.21",
   "description": "Generate mocker services automatically through Swagger or OpenAPI",
-  "bin": {
-    "swagger-faker": "bin/cli.js"
-  },
   "main": "dist/lib/index.js",
   "module": "dist/module/index.js",
   "types": "src/index.ts",
+  "keywords": [
+    "swagger",
+    "openapi",
+    "mock",
+    "mock data",
+    "webpack",
+    "faker",
+    "yaml",
+    "middleware"
+  ],
   "files": [
     "lib",
     "module",
@@ -16,20 +23,20 @@
   ],
   "scripts": {
     "start": "node --loader ts-node/esm --no-warnings src/cli/index.ts",
-    "prepublishOnly": "pnpm test && pnpm build",
+    "prepublishOnly": "yarn test && yarn build",
     "test": "tsc && jest",
     "build": "rm -rf dist/ && rollup -c rollup.config.ts --configPlugin typescript --bundleConfigAsCjs"
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:reeli/swagger-faker.git"
+    "url": "git@github.com:smff/webpack-middleware-swagger-faker.git"
   },
   "author": "reeli",
   "license": "MIT",
   "bugs": {
-    "url": "git@github.com:reeli/swagger-faker.git"
+    "url": "git@github.com:smff/webpack-middleware-swagger-faker.git"
   },
-  "homepage": "git@github.com:reeli/swagger-faker.git",
+  "homepage": "git@github.com:smff/webpack-middleware-swagger-faker.git",
   "devDependencies": {
     "@babel/core": "^7.21.8",
     "@babel/parser": "^7.21.9",

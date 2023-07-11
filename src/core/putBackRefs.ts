@@ -93,7 +93,9 @@ export const putBackRefs = ({ schema, openApi, ctx }: PutBackRefParams): ReturnT
   // handle allOf
   if (schema.allOf) {
     const allOfList = map((schema as any).allOf, (item) => putBackRefs({ schema: item, openApi, ctx }));
-    const hasString = allOfList.some((item) => item.type === "string");
+    const hasString = allOfList.some((item) => {
+      return item && item.type === "string"
+    });
 
     if (hasString) {
       return allOfList.reduce((res, item) => {
@@ -105,6 +107,9 @@ export const putBackRefs = ({ schema, openApi, ctx }: PutBackRefParams): ReturnT
     }
 
     return allOfList.reduce((res, item) => {
+      if(!item){
+        return res;
+      }
       if (item.type !== "object" && !item.properties) {
         return res;
       }

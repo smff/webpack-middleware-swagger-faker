@@ -1,5 +1,5 @@
-import { WebpackMiddlewareSwaggerFaker } from "../../webpack-middleware-swagger-faker_old/__types__/common";
 import { jsonServerGen } from "./json-server";
+import { WebpackMiddlewareSwaggerFaker } from "common";
 
 export * from "./core";
 export * from "./json-server";

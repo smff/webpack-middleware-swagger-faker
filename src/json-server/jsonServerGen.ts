@@ -67,8 +67,6 @@ const handleRequest = (
     `;
 
   const resWithoutMockData = `
-    var ${ operationId } = require("${ mockDataPath }/${ operationId }.json");
-    
      module.exports = {
         name: '${ operationId }',
         path: '${ routePattern }',

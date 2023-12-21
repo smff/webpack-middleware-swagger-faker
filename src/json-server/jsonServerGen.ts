@@ -54,14 +54,16 @@ const handleRequest = (
     return;
   }
 
+  const varName = `_${operationId}`;
+
   const resWithMockData = `
-    var ${ operationId } = require("${ mockDataPath }/${ operationId }.json");
+    var ${ varName } = require("${ mockDataPath }/${ operationId }.json");
     
     module.exports = {
         name: '${ operationId }',
         path: '${ routePattern }',
         middleware: (req, res) => {
-          res.json(${ operationId });
+          res.json(${ varName });
       }
     }
     `;

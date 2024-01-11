@@ -54,14 +54,15 @@ const handleRequest = (
     return;
   }
 
+
   const resWithMockData = `
-    var ${ operationId } = require("${ mockDataPath }/${ operationId }.json");
+    var _${ operationId } = require("${ mockDataPath }/${ operationId }.json");
     
     module.exports = {
         name: '${ operationId }',
         path: '${ routePattern }',
         middleware: (req, res) => {
-          res.json(${ operationId });
+          res.json(_${ operationId });
       }
     }
     `;
@@ -88,7 +89,7 @@ const configJsonServerMiddlewaresIndex = (moduleItems: any, middlewaresFolder: s
   fs.writeFileSync(indexFile, '')
   moduleItems.forEach((item: any) => {
     if (item && item.operationId) {
-      const importLine = `const ${ item.operationId } = require('./${ item.operationId }');\n`
+      const importLine = `const _${item.operationId} = require('./${ item.operationId }');\n`
       fs.appendFileSync(indexFile, importLine)
     }
   })
@@ -96,7 +97,7 @@ const configJsonServerMiddlewaresIndex = (moduleItems: any, middlewaresFolder: s
   fs.appendFileSync(indexFile, 'module.exports = {\n')
   moduleItems.forEach((item: any) => {
     if (item && item.operationId) {
-      const importLine = `${ item.operationId } : ${ item.operationId },\n`
+      const importLine = `${ item.operationId } : _${ item.operationId },\n`
       fs.appendFileSync(indexFile, importLine)
     }
   })

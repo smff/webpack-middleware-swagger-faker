@@ -1,6 +1,6 @@
 {
   "name": "webpack-middleware-swagger-faker",
-  "version": "0.0.22",
+  "version": "0.0.23",
   "description": "Generate mocker services automatically through Swagger or OpenAPI",
   "main": "dist/lib/index.js",
   "module": "dist/module/index.js",

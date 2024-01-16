@@ -5,7 +5,7 @@ import { generateMockFile, isJSON } from "../core/utils";
 import { prettifyCode } from "./utils";
 import { FakeGenOutput, WebpackMiddlewareSwaggerFaker } from "common";
 
-export const jsonServerGen = (swaggerFakerConfig: WebpackMiddlewareSwaggerFaker) => {
+export const jsonServerGen = async (swaggerFakerConfig: WebpackMiddlewareSwaggerFaker) => {
   const mockDataFolder = `${ swaggerFakerConfig.outputFolder }/data`;
   const middlewaresFolder = `${ swaggerFakerConfig.outputFolder }/middlewares`;
 
@@ -17,14 +17,16 @@ export const jsonServerGen = (swaggerFakerConfig: WebpackMiddlewareSwaggerFaker)
     fs.mkdirSync(middlewaresFolder, { recursive: true });
   }
 
-  swaggerFakerConfig.sourcePaths.forEach((apiSpecsPath) => {
-    fakerGenFromPath(apiSpecsPath).then((list) => {
-      list.map((item) => {
+  const allSpecs: any[] = [];
+  await Promise.all(swaggerFakerConfig.sourcePaths.map(async function (apiSpecsPath) {
+    await fakerGenFromPath(apiSpecsPath).then(function (list) {
+      list.map(function (item) {
         configJsonServer(item, middlewaresFolder, mockDataFolder);
       });
-      configJsonServerMiddlewaresIndex(list, middlewaresFolder)
+      allSpecs.push(...list);
     });
-  });
+  }))
+  configJsonServerMiddlewaresIndex(allSpecs, middlewaresFolder);
 };
 
 const configJsonServer = (item: FakeGenOutput, middlewaresFolder: string, mockDataFolder: string) => {
